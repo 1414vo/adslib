@@ -27,7 +27,7 @@ VERSION = "0.1.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "pandas", "numpy", "jupyter", "matplotlib", "pyDes", "pyyaml"
+    "pandas", "numpy", "jupyter", "matplotlib", "cryptography", "pyyaml"
 ]
 
 # What packages are optional?
@@ -35,7 +35,7 @@ EXTRAS = {
     "interactive html plots": ["bokeh",],
 }
 
-PACKAGE_DATA = {"fynesse": ["defaults.yml"]}
+PACKAGE_DATA = {"adslib": ["defaults.yml"]}
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
