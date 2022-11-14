@@ -1,2 +1,2 @@
-from . import credential_store
+from . import credentialstore
 from . import access
