@@ -1,3 +1,5 @@
+from .config import *
+
 import pymysql
 import pandas as pd
 
