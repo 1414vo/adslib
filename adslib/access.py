@@ -42,7 +42,7 @@ def save_local_data_in_table(user, password, host, database, table_name, file_lo
         cur.execute('DELETE FROM ' + table_name)
         conn.commit()
     cur = conn.cursor()
-    data_to_insert = pd.read_csv(file_location)
+    data_to_insert = remove_nans(pd.read_csv(file_location))
     list_of_rows = list(data_to_insert.to_records(index=False))
     list_of_rows = [tuple(i) for i in list_of_rows]
 
