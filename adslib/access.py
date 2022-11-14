@@ -1,5 +1,3 @@
-from .config import *
-
 import pymysql
 import pandas as pd
 
@@ -43,6 +41,7 @@ def save_local_data_in_table(user, password, host, database, table_name, file_lo
         conn.commit()
     cur = conn.cursor()
     data_to_insert = remove_nans(pd.read_csv(file_location))
+    print(len(data_to_insert), len(data_to_insert.dropna()))
     list_of_rows = list(data_to_insert.to_records(index=False))
     list_of_rows = [tuple(i) for i in list_of_rows]
 
@@ -52,6 +51,6 @@ def save_local_data_in_table(user, password, host, database, table_name, file_lo
     column_list = list(zip(*cols))[0][:-1]
     number_of_columns = len(column_list)
     template = '%s, ' * (number_of_columns - 1) + '%s'
-    query = 'INSERT INTO ' + table_name + ' ' + str(column_list) + ' VALUES (' + template + ')'
+    query = 'INSERT INTO ' + table_name + ' ' + str(column_list).replace("'", '') + ' VALUES (' + template + ')'
     cur.executemany(query, list_of_rows)
     conn.commit()
