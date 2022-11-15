@@ -30,18 +30,16 @@ def remove_nans(data, fraction_limit = 0.75):
     for col in data.columns:
         if len(data.dropna(subset = [col])) / row_number >= fraction_limit:
             col_list.append(col)
-    return data.dropna(subset = col_list).fillna('')
+    return data.dropna(subset = col_list)
 
-def save_local_data_in_table(user, password, host, database, table_name, file_location, reset = True):
-    conn = create_connection(user, password, host, database)
-    
+def save_local_data_in_table(conn, table_name, file_location, reset = True):
     if reset:
         cur = conn.cursor()
         cur.execute('DELETE FROM ' + table_name)
         conn.commit()
     cur = conn.cursor()
-    data_to_insert = remove_nans(pd.read_csv(file_location))
-    print(len(data_to_insert), len(data_to_insert.dropna()))
+    data_to_insert = pd.read_csv(file_location).fillna('').replace('\\N', '0')
+
     list_of_rows = list(data_to_insert.to_records(index=False))
     list_of_rows = [tuple(i) for i in list_of_rows]
 
@@ -54,3 +52,4 @@ def save_local_data_in_table(user, password, host, database, table_name, file_lo
     query = 'INSERT INTO ' + table_name + ' ' + str(column_list).replace("'", '') + ' VALUES (' + template + ')'
     cur.executemany(query, list_of_rows)
     conn.commit()
+
