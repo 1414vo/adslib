@@ -24,19 +24,14 @@ def create_connection(user, password, host, database, port=3306):
         print(f"Error connecting to the MariaDB Server: {e}")
     return conn
 
-def remove_nans(data, fraction_limit = 0.75):
-    row_number = len(data)
-    col_list = []
-    for col in data.columns:
-        if len(data.dropna(subset = [col])) / row_number >= fraction_limit:
-            col_list.append(col)
-    return data.dropna(subset = col_list)
-
 def save_local_data_in_table(conn, table_name, file_location, reset = True):
     if reset:
         cur = conn.cursor()
         cur.execute('DELETE FROM ' + table_name)
         conn.commit()
+        print("Deleted table entries")
+        cur.close()
+
     cur = conn.cursor()
     data_to_insert = pd.read_csv(file_location).fillna('').replace('\\N', '0')
 
@@ -51,5 +46,6 @@ def save_local_data_in_table(conn, table_name, file_location, reset = True):
     template = '%s, ' * (number_of_columns - 1) + '%s'
     query = 'INSERT INTO ' + table_name + ' ' + str(column_list).replace("'", '') + ' VALUES (' + template + ')'
     cur.executemany(query, list_of_rows)
+    print("Inserted %s lines in %s", (len(list_of_rows), table_name))
     conn.commit()
 

@@ -5,45 +5,47 @@ def get_row_sample(conn, table_name, limit = 100):
     cur.execute('SELECT * FROM %s LIMIT %s' % (table_name, limit))
     return cur.fetchall()
 
-def get_postcode_data_for_area(conn, area):
+def get_postcode_data_for_area(conn, area, limit = 100):
     cur = conn.cursor()
-    cur.execute('SELECT * FROM `postcode_data` WHERE postcode LIKE "%s%"' % area)
+    print('SELECT * FROM `postcode_data` WHERE postcode LIKE "%s%%" LIMIT %s' %(area, limit))
+    cur.execute('SELECT * FROM `postcode_data` WHERE postcode LIKE %(area)s LIMIT %(limit)s', \
+        {'area': area + '%', 'limit': limit})
     return cur.fetchall()
 
-def get_price_coord_data_for_area(conn, area):
+def get_price_coord_data_for_area(conn, area, limit = 100):
     cur = conn.cursor()
     query = '''SELECT * FROM 
-            (SELECT price, date_of_transfer, postcode, property_type, new_build_flage, tenure_type FROM `pp_data`
-            WHERE postcode LIKE "%s%") pp
+            (SELECT price, date_of_transfer, postcode, property_type, new_build_flag, tenure_type, locality, town_city, district, county  FROM `pp_data`
+            WHERE postcode LIKE %(area)s) pp
             INNER JOIN 
-            (SELECT postcode, locality, town_city, district, county, country, latitude, longitude FROM `property_prices`
-            WHERE postcode LIKE "%s%") pc
-            ON pp.postcode = pc.postcode''' % (area, area)
-    cur.execute(query)
+            (SELECT postcode, country, lattitude, longitude FROM `postcode_data`
+            WHERE postcode LIKE %(area)s) pc
+            ON pp.postcode = pc.postcode  LIMIT %(limit)s'''
+    cur.execute(query, {'area': area + '%', 'limit': limit})
     return cur.fetchall()
 
-def get_price_coord_data_between_years(conn, start_year = 1995, end_year = 2022):
+def get_price_coord_data_between_years(conn, start_year = 1995, end_year = 2022, limit = 100):
     cur = conn.cursor()
     query = '''SELECT * FROM 
-            (SELECT price, date_of_transfer, postcode, property_type, new_build_flage, tenure_type FROM `pp_data`
-            WHERE date_of_transfer BETWEEN YEAR %s AND YEAR %s) pp
+            (SELECT price, date_of_transfer, postcode, property_type, new_build_flag, tenure_type, locality, town_city, district, county FROM `pp_data`
+            WHERE date_of_transfer BETWEEN %(start_date)s AND %(end_date)s) pp
             INNER JOIN 
-            (SELECT postcode, locality, town_city, district, county, country, latitude, longitude FROM `property_prices`) pc
-            ON pp.postcode = pc.postcode''' % (start_year, end_year)
-    cur.execute(query)
+            (SELECT postcode, country, lattitude, longitude FROM `postcode_data`) pc
+            ON pp.postcode = pc.postcode LIMIT %(limit)s''' 
+    cur.execute(query, {'start_date': str(start_year) + '/1/1', 'end_date': str(end_year) + '/12/31', 'limit': limit})
     return cur.fetchall()
 
-def get_price_coord_data_between_years_for_area(conn, area, start_year = 1995, end_year = 2022):
+def get_price_coord_data_between_years_for_area(conn, area, start_year = 1995, end_year = 2022, limit = 100):
     cur = conn.cursor()
     query = '''SELECT * FROM 
-            (SELECT price, date_of_transfer, postcode, property_type, new_build_flage, tenure_type 
+            (SELECT price, date_of_transfer, postcode, property_type, new_build_flag, tenure_type, locality, town_city, district, county 
             FROM `pp_data`
-            WHERE postcode LIKE "%s%" AND
-            date_of_transfer BETWEEN YEAR %s AND YEAR %s) pp
+            WHERE postcode LIKE %(area)s AND
+            date_of_transfer BETWEEN %(start_date)s AND %(end_date)s) pp
             INNER JOIN 
-            (SELECT postcode, locality, town_city, district, county, country, latitude, longitude 
-            FROM `property_prices`
-            WHERE postcode LIKE "%s%") pc
-            ON pp.postcode = pc.postcode''' % (area, start_year, end_year, area)
-    cur.execute(query)
+            (SELECT postcode, country, lattitude, longitude 
+            FROM `postcode_data`
+            WHERE postcode LIKE %(area)s) pc
+            ON pp.postcode = pc.postcode LIMIT %(limit)s'''
+    cur.execute(query, {'area': area + '%', 'start_date': str(start_year) + '/1/1', 'end_date': str(end_year) + '/12/31', 'limit': limit})
     return cur.fetchall()
