@@ -16,6 +16,9 @@ def compute_cpa(data):
 
 def invert_cpa(data, eigenvectors, means):
     return np.dot(eigenvectors, np.dot(eigenvectors.transpose(),(data - means).transpose())).transpose() + means
+
+def mse(predictions, target):
+    return (predictions - target)**2 / len(predictions)
     
 def cross_validation(features, target, split_fractions, loss = mse,  number_of_splits = 5, alpha = 0):
     assert len(split_fractions) == 3, "'split_fractions' parameter should contain 3 numbers, ['fit_fraction', 'validation_fraction', 'test_fraction']."
@@ -45,5 +48,3 @@ def cross_validation(features, target, split_fractions, loss = mse,  number_of_s
     results['summary_frame'] = loss(test_fit.get_prediction(X_test).summary_grame(alpha = 0.05))
     return results
 
-def mse(predictions, target):
-    return (predictions - target)**2 / len(predictions)
