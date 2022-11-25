@@ -44,9 +44,9 @@ def extract_place_features(city, country, county = ""):
     return {'place_center': place_data.geometry.centroid, 'importance': place_data.importance}
 
 def extract_osm_building_features(building_data, geometries_features):
-    box_height = 2*(building_data.latitude.max() - building_data.latitude.min())
+    box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    box_width = 2*(building_data.longitude.max() - building_data.longitude.min())
+    box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
     longitude = (building_data.latitude.max() + building_data.latitude.min())/2
     
     osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, {'building': True})
@@ -54,10 +54,10 @@ def extract_osm_building_features(building_data, geometries_features):
     matches = building_data.apply(lambda x: osm_centroids.distance(Point(x.latitude, x.longitude)).argmin())
     return osm_buildings.iloc[matches][geometries_features]
 
-def extract_distance_to_closest_feature_in_box(building_data, tags):
-    box_height = 2*(building_data.latitude.max() - building_data.latitude.min())
+def extract_distance_to_closest_feature_in_box(building_data, tags, padding = 0.06):
+    box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    box_width = 2*(building_data.longitude.max() - building_data.longitude.min())
+    box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
     longitude = (building_data.latitude.max() + building_data.latitude.min())/2
     
     osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, tags)
@@ -67,9 +67,9 @@ def extract_distance_to_closest_feature_in_box(building_data, tags):
     return  building_data.apply(lambda x: osm_centroids.distance(Point(x.latitude, x.longitude)).min())
 
 def extract_number_of_features_in_box(building_data, tags):
-    box_height = 2*(building_data.latitude.max() - building_data.latitude.min())
+    box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    box_width = 2*(building_data.longitude.max() - building_data.longitude.min())
+    box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
     longitude = (building_data.latitude.max() + building_data.latitude.min())/2
     
     osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, tags)
