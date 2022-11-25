@@ -43,7 +43,7 @@ def extract_place_features(city, country, county = ""):
     place_data = ox.geocode_to_gdf(place_name)[0]
     return {'place_center': place_data.geometry.centroid, 'importance': place_data.importance}
 
-def extract_osm_building_features(building_data, geometries_features):
+def extract_osm_building_features(building_data, geometries_features, padding = 0.06):
     box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
     box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
@@ -66,7 +66,7 @@ def extract_distance_to_closest_feature_in_box(building_data, tags, padding = 0.
     osm_centroids = osm_buildings.geometry.centroid
     return  building_data.apply(lambda x: osm_centroids.distance(Point(x.latitude, x.longitude)).min())
 
-def extract_number_of_features_in_box(building_data, tags):
+def extract_number_of_features_in_box(building_data, tags, padding = 0.06):
     box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
     box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
@@ -75,7 +75,7 @@ def extract_number_of_features_in_box(building_data, tags):
     osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, tags)
     return len(osm_buildings)
 
-extract_feature_existence_in_box = lambda building_data, tags: extract_number_of_features_in_box(building_data, tags) > 0
+extract_feature_existence_in_box = lambda building_data, tags, padding = 0.06: extract_number_of_features_in_box(building_data, tags) > 0
 def match_single_building(latitude, longitude):
     radius = 100
     buildings_in_radius = get_features_around_coord(latitude, longitude, radius, {'building': True})
