@@ -2,21 +2,6 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn.model_selection import train_test_split, KFold
 
-def compute_cpa(data):
-    data_means = np.mean(data, axis = 0)
-    data_centered = data - data_means
-    cov_mat = np.cov(centered_spectra , rowvar = False)
-    eigen_values , eigen_vectors = np.linalg.eigh(cov_mat)
-    
-    sorted_idx = np.argsort(eigen_values)[::-1]
-    sorted_eigenvalues = eigen_values[sorted_idx]
-    sorted_eigenvectors = eigen_vectors[:,sorted_idx]
-    
-    return sorted_eigenvalues, sorted_eigenvectors, data_means
-
-def invert_cpa(data, eigenvectors, means):
-    return np.dot(eigenvectors, np.dot(eigenvectors.transpose(),(data - means).transpose())).transpose() + means
-
 def mse(predictions, target):
     return (predictions - target)**2 / len(predictions)
     

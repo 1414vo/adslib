@@ -46,6 +46,6 @@ def save_local_data_in_table(conn, table_name, file_location, reset = True):
     template = '%s, ' * (number_of_columns - 1) + '%s'
     query = 'INSERT INTO ' + table_name + ' ' + str(column_list).replace("'", '') + ' VALUES (' + template + ')'
     cur.executemany(query, list_of_rows)
-    print("Inserted %s lines in %s", (len(list_of_rows), table_name))
+    print("Inserted %s lines in %s"% (len(list_of_rows), table_name))
     conn.commit()
 
