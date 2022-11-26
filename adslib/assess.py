@@ -53,14 +53,17 @@ def extract_place_features(city, country, county = ""):
     if len(county) == 0:
         place_name += ', %s'%county
     place_name += ', %s'%country
-    place_data = ox.geocode_to_gdf(place_name)
+    try:
+        place_data = ox.geocode_to_gdf(place_name)
+    except ValueError():
+        return None
     if len(place_data) < 1:
         return None
     place = place_data.iloc[0]
     place_geometry = place_data.geometry.to_crs(27700)[0]
     centroid = place_geometry.centroid
     exterior_points = gpd.GeoSeries([Point(i) for i in place_geometry.exterior.coords])
-    radius = exterior_points.apply(lambda x: centroid.distance(x)).max()
+    radius = exterior_points.apply(lambda x: centroid.distance(x)).mean()
     return {'place_center': centroid, 'importance': place.importance, 'radius': radius}
 
 def get_geometries_in_region(building_data, tags, padding = 0.02):
