@@ -50,12 +50,13 @@ def match_single_building(latitude, longitude):
 
 def extract_place_features(city, country, county = ""):
     place_name = city
+    print(county, len(county))
     if len(county) == 0:
         place_name += ', %s'%county
     place_name += ', %s'%country
     try:
         place_data = ox.geocode_to_gdf(place_name)
-    except ValueError():
+    except ValueError:
         return None
     if len(place_data) < 1:
         return None
