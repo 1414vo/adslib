@@ -95,12 +95,9 @@ def extract_osm_building_features(building_data, geometries_features = [], paddi
         return None
     points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
     matches = points.apply(lambda x: centroids.distance(x).argmin())
-    print(matches)
     matching_buildings = buildings.iloc[matches]
     matching_buildings.index = building_data.index
-    print(matching_buildings)
     matching_buildings['is_valid_match'] = points.apply(lambda x: centroids.distance(x).min()) < 150
-    print(matching_buildings)
     if len(geometries_features) == 0:
         return matching_buildings
     return matching_buildings[geometries_features]
