@@ -68,7 +68,7 @@ def extract_place_features(city, country, county = ""):
     centroid = place_data.geometry.to_crs(27700)[0].centroid
     if place.geometry.geom_type == 'MultiPolygon':
         multi_radius = np.array([__polygon_radius__(poly) for poly in place_data.geometry.to_crs(27700)[0]])
-        radius = ((multi_radius**2).sum())**2
+        radius = ((multi_radius**2).sum())**(1/2)
     elif place.geometry.geom_type == 'Polygon':
         radius = __polygon_radius__(place_data.geometry.to_crs(27700)[0])
     else:
@@ -95,8 +95,12 @@ def extract_osm_building_features(building_data, geometries_features = [], paddi
         return None
     points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
     matches = points.apply(lambda x: centroids.distance(x).argmin())
-    matching_buildings = np.where(centroids[matches].reset_index().distance(points) < 150, buildings.iloc[matches].transpose(), np.nan).transpose()
-    matching_buildings = pd.DataFrame(matching_buildings, columns = buildings.columns)
+    print(matches)
+    matching_buildings = buildings.iloc[matches]
+    matching_buildings.index = building_data.index
+    print(matching_buildings)
+    matching_buildings['is_valid_match'] = points.apply(lambda x: centroids.distance(x).min()) < 150
+    print(matching_buildings)
     if len(geometries_features) == 0:
         return matching_buildings
     return matching_buildings[geometries_features]
