@@ -48,9 +48,13 @@ def match_single_building(latitude, longitude):
     print(distances)
     return buildings_in_radius.iloc[distances[0].argmin()]
 
+def __polygon_radius__(poly):
+    centroid = poly.centroid
+    exterior_points = gpd.GeoSeries([Point(i) for i in poly.exterior.coords])
+    return exterior_points.apply(lambda x: centroid.distance(x)).mean()
+
 def extract_place_features(city, country, county = ""):
     place_name = city
-    print(county, len(county))
     if len(county) == 0:
         place_name += ', %s'%county
     place_name += ', %s'%country
@@ -61,10 +65,14 @@ def extract_place_features(city, country, county = ""):
     if len(place_data) < 1:
         return None
     place = place_data.iloc[0]
-    place_geometry = place_data.geometry.to_crs(27700)[0]
-    centroid = place_geometry.centroid
-    exterior_points = gpd.GeoSeries([Point(i) for i in place_geometry.exterior.coords])
-    radius = exterior_points.apply(lambda x: centroid.distance(x)).mean()
+    centroid = place_data.geometry.to_crs(27700)[0].centroid
+    if place.geometry.geom_type == 'MultiPolygon':
+        multi_radius = np.array([__polygon_radius__(poly) for poly in place_data.geometry.to_crs(27700)[0]])
+        radius = ((multi_radius**2).sum())**2
+    elif place.geometry.geom_type == 'Polygon':
+        radius = __polygon_radius__(place_data.geometry.to_crs(27700)[0])
+    else:
+        return None    
     return {'place_center': centroid, 'importance': place.importance, 'radius': radius}
 
 def get_geometries_in_region(building_data, tags, padding = 0.02):
