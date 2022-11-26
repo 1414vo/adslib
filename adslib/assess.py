@@ -1,6 +1,8 @@
 import osmnx as ox
-from shapely.geometry import Point
-
+from shapely.geometry import Point, MultiPoint
+import numpy as np
+import pandas as pd
+import geopandas as gpd
 def compute_cpa(data):
     data_means = np.mean(data, axis = 0)
     data_centered = data - data_means
@@ -24,7 +26,7 @@ def get_features_around_coord(latitude, longitude, radius, tags, feature_set = [
 
 def extract_number_features(latitude, longitude, distance, feature_tag):
     features_in_radius = ox.geometries_from_point((latitude, longitude), feature_tag, dist = distance)
-    len(features_in_radius)
+    return len(features_in_radius)
     
 extract_existance_feature = lambda latitude, longitude, distance, feature_tag : extract_number_features(latitude, longitude, distance, feature_tag) >= 1
  
@@ -32,52 +34,71 @@ def extract_distance_to_closest_feature_single(latitude, longitude, feature_tag,
     features_in_radius = ox.geometries_from_point((latitude, longitude), feature_tag, dist = limit_distance)
     if len(features_in_radius) == 0:
         return None
-    distances = features_in_radius.geometry.centroid.distance(Point(latitude, longitude))
-    return min(distances)
+    print(features_in_radius)
+    point = gpd.GeoSeries(Point(longitude, latitude)).set_crs(4326).to_crs(27700)
+    print(features_in_radius.geometry.centroid)
+    distances = features_in_radius.to_crs(27700).geometry.centroid.apply(lambda x: point.distance(x))
+    return distances[0].min()
+
+def match_single_building(latitude, longitude):
+    radius = 100
+    buildings_in_radius = get_features_around_coord(latitude, longitude, radius, {'building': True})
+    point = gpd.GeoSeries(Point(longitude, latitude)).set_crs(4326).to_crs(27700)
+    distances = buildings_in_radius.to_crs(27700).geometry.centroid.apply(lambda x: point.distance(x))
+    print(distances)
+    return buildings_in_radius.iloc[distances[0].argmin()]
 
 def extract_place_features(city, country, county = ""):
     place_name = city
     if len(county) == 0:
         place_name += ', %s'%county
     place_name += ', %s'%country
-    place_data = ox.geocode_to_gdf(place_name)[0]
-    return {'place_center': place_data.geometry.centroid, 'importance': place_data.importance}
-
-def extract_osm_building_features(building_data, geometries_features, padding = 0.06):
-    box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
-    latitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
-    longitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    
-    osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, {'building': True})
-    osm_centroids = osm_buildings.geometry.centroid
-    matches = building_data.apply(lambda x: osm_centroids.distance(Point(x.latitude, x.longitude)).argmin())
-    return osm_buildings.iloc[matches][geometries_features]
-
-def extract_distance_to_closest_feature_in_box(building_data, tags, padding = 0.06):
-    box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
-    latitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
-    longitude = (building_data.latitude.max() + building_data.latitude.min())/2
-    
-    osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, tags)
-    if len(osm_buildings) == 0:
+    place_data = ox.geocode_to_gdf(place_name)
+    if len(place_data) < 1:
         return None
-    osm_centroids = osm_buildings.geometry.centroid
-    return  building_data.apply(lambda x: osm_centroids.distance(Point(x.latitude, x.longitude)).min())
+    place = place_data.iloc[0]
+    place_geometry = place_data.geometry.to_crs(27700)[0]
+    centroid = place_geometry.centroid
+    exterior_points = gpd.GeoSeries([Point(i) for i in place_geometry.exterior.coords])
+    radius = exterior_points.apply(lambda x: centroid.distance(x)).max()
+    return {'place_center': centroid, 'importance': place.importance, 'radius': radius}
 
-def extract_number_of_features_in_box(building_data, tags, padding = 0.06):
+def get_geometries_in_region(building_data, tags, padding = 0.02):
     box_height = building_data.latitude.max() - building_data.latitude.min() + 2*padding
     latitude = (building_data.latitude.max() + building_data.latitude.min())/2
     box_width = building_data.longitude.max() - building_data.longitude.min() + 2*padding
-    longitude = (building_data.latitude.max() + building_data.latitude.min())/2
+    longitude = (building_data.longitude.max() + building_data.longitude.min())/2
     
-    osm_buildings = ox.geometries_from_bbox(latitude, longitude, box_height, box_width, tags)
-    return len(osm_buildings)
+    north = latitude + box_height/2
+    south = latitude - box_height/2
+    east = longitude + box_width/2
+    west = longitude - box_width/2
+    
+    return ox.geometries_from_bbox(north, south, east, west, tags)
 
-extract_feature_existence_in_box = lambda building_data, tags, padding = 0.06: extract_number_of_features_in_box(building_data, tags) > 0
-def match_single_building(latitude, longitude):
-    radius = 100
-    buildings_in_radius = get_features_around_coord(latitude, longitude, radius, {'building': True})
-    distances = buildings_in_radius.geometry.centroid.distance(Point(latitude, longitude))
-    return buildings_in_radius[distances.argmin()]
+def extract_osm_building_features(building_data, geometries_features = [], padding = 0.02):
+    buildings = get_geometries_in_region(building_data, {'building': True}, padding = padding)
+    centroids = buildings.to_crs(27700).geometry.centroid
+    if len(buildings) == 0:
+        return None
+    points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
+    matches = points.apply(lambda x: centroids.distance(x).argmin())
+    matching_buildings = np.where(centroids[matches].reset_index().distance(points) < 150, buildings.iloc[matches].transpose(), np.nan).transpose()
+    matching_buildings = pd.DataFrame(matching_buildings, columns = buildings.columns)
+    if len(geometries_features) == 0:
+        return matching_buildings
+    return matching_buildings[geometries_features]
+
+def extract_distance_to_closest_feature_in_box(building_data, tags, padding = 0.02):
+    features = get_geometries_in_region(building_data, tags, padding = padding)
+    if len(features) == 0:
+        return None
+    centroids = features.to_crs(27700).geometry.centroid
+    points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
+    return points.apply(lambda x: centroids.distance(x).min())
+
+def extract_number_of_features_in_box(building_data, tags, padding = 0.02):
+    features = get_geometries_in_region(building_data, tags, padding = padding)
+    return len(features)
+
+extract_feature_existence_in_box = lambda building_data, tags, padding = 0.02: extract_number_of_features_in_box(building_data, tags) > 0

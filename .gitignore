@@ -1,2 +1,4 @@
 **/__pycache__/
 *_test.py
+*.ipynb
+/cache
