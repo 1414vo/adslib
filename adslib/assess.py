@@ -126,3 +126,10 @@ def do_one_hot_encoding(df, feature):
         encoding_name = 'is_' + str(feature) + '_' + str(feature_type)
         df[encoding_name] = np.where(df[feature] == feature_type, 1, 0)
     return df
+
+def remove_outliers(df, feature):
+    quantiles = np.quantile(df[feature], [0.25, 0.75])
+    iqr = quantiles[1] - quantiles[0]
+    lower_bound = quantiles[0] - 1.5*iqr
+    upper_bound = quantiles[1] + 1.5*iqr
+    return df[(df[feature] <= upper_bound) & (df[feature] >= lower_bound)]
