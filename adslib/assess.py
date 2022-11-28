@@ -45,7 +45,6 @@ def match_single_building(latitude, longitude):
     buildings_in_radius = get_features_around_coord(latitude, longitude, radius, {'building': True})
     point = gpd.GeoSeries(Point(longitude, latitude)).set_crs(4326).to_crs(27700)
     distances = buildings_in_radius.to_crs(27700).geometry.centroid.apply(lambda x: point.distance(x))
-    print(distances)
     return buildings_in_radius.iloc[distances[0].argmin()]
 
 def __polygon_radius__(poly):
@@ -114,4 +113,13 @@ def extract_number_of_features_in_box(building_data, tags, padding = 0.02):
     features = get_geometries_in_region(building_data, tags, padding = padding)
     return len(features)
 
-extract_feature_existence_in_box = lambda building_data, tags, padding = 0.02: extract_number_of_features_in_box(building_data, tags) > 0
+def extract_feature_existence_in_box (building_data, tags, padding = 0.02, distance_limit = 500): 
+    print(1)
+    features = get_geometries_in_region(building_data, tags, padding = padding)
+    print(2)
+    centroids = features.to_crs(27700).geometry.centroid
+    print(3)
+    if len(features) == 0:
+        return 0
+    points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
+    return points.apply(lambda x: centroids.distance(x).min()) < distance_limit
