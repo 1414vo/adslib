@@ -115,8 +115,8 @@ def extract_number_of_features_in_box(building_data, tags, padding = 0.02):
 
 def extract_feature_existence_in_box (building_data, tags, padding = 0.02, distance_limit = 500): 
     features = get_geometries_in_region(building_data, tags, padding = padding)
-    centroids = features.to_crs(27700).geometry.centroid
     if len(features) == 0:
-        return 0
+        return False
+        centroids = features.to_crs(27700).geometry.centroid
     points = gpd.GeoSeries(building_data.apply(lambda x: Point(x.longitude, x.latitude), axis = 1)).set_crs(4326).to_crs(27700)
     return points.apply(lambda x: centroids.distance(x).min()) < distance_limit
