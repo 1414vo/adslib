@@ -76,9 +76,3 @@ def get_price_coord_data_between_years_for_coordinate_area(conn, north, east, so
             LIMIT %(limit)s'''
     cur.execute(query, {'area': area + '%', 'start_date': str(start_year) + '/1/1', 'end_date': str(end_year) + '/12/31', 'limit': limit})
     return cur.fetchall()
-
-def do_one_hot_encoding(df, feature):
-    for feature_type in df[feature].unique():
-        encoding_name = 'is_' + str(feature) + '_' + str(feature_type)
-        df[encoding_name] = np.where(df[feature] == feature_type, 1, 0)
-    return df
