@@ -14,10 +14,10 @@ def cross_validation(features, target, split_fractions, loss = mse,  number_of_s
     kfold = KFold(n_splits=number_of_splits)
     scores = []
     for fit_index, val_index in kfold.split(X_fit_val):
-        X_fit = X_fit_val[fit_index]
-        X_val = X_fit_val[val_index]
-        y_fit = y_fit_val[fit_index]
-        y_val = y_fit_val[val_index]
+        X_fit = X_fit_val.iloc[fit_index]
+        X_val = X_fit_val.iloc[val_index]
+        y_fit = y_fit_val.iloc[fit_index]
+        y_val = y_fit_val.iloc[val_index]
         
         model = sm.OLS(y_fit, X_fit)
         # Ridge regression due to multicollinearity
@@ -31,5 +31,5 @@ def cross_validation(features, target, split_fractions, loss = mse,  number_of_s
     results['validation_scores'] = np.array(scores)
     results['test_score'] = loss(test_fit.get_prediction(X_test), y_test)
     results['summary_frame'] = loss(test_fit.get_prediction(X_test).summary_grame(alpha = 0.05))
-    return results
+    return results, test_model
 

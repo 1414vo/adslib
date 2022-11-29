@@ -35,9 +35,7 @@ def extract_distance_to_closest_feature_single(latitude, longitude, feature_tag,
     features_in_radius = ox.geometries_from_point((latitude, longitude), feature_tag, dist = limit_distance)
     if len(features_in_radius) == 0:
         return None
-    print(features_in_radius)
     point = gpd.GeoSeries(Point(longitude, latitude)).set_crs(4326).to_crs(27700)
-    print(features_in_radius.geometry.centroid)
     distances = features_in_radius.to_crs(27700).geometry.centroid.apply(lambda x: point.distance(x))
     return distances[0].min()
 
