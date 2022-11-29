@@ -40,7 +40,7 @@ def extract_distance_to_closest_feature_single(latitude, longitude, feature_tag,
     return distances[0].min()
 
 def match_single_building(latitude, longitude):
-    radius = 100
+    radius = 500
     buildings_in_radius = get_features_around_coord(latitude, longitude, radius, {'building': True})
     point = gpd.GeoSeries(Point(longitude, latitude)).set_crs(4326).to_crs(27700)
     distances = buildings_in_radius.to_crs(27700).geometry.centroid.apply(lambda x: point.distance(x))
