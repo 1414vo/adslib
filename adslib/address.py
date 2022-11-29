@@ -30,6 +30,6 @@ def cross_validation(features, target, split_fractions, loss = mse,  number_of_s
     results = {}
     results['validation_scores'] = np.array(scores)
     results['test_score'] = loss(test_fit.predict(X_test), y_test)
-    results['summary_frame'] = loss(test_fit.get_predict(X_test).summary_grame(alpha = 0.05))
+    results['summary_frame'] = test_fit.predict(X_test).summary_grame(alpha = 0.05)
     return results, test_model
 
