@@ -6,7 +6,7 @@ import geopandas as gpd
 def compute_cpa(data):
     data_means = np.mean(data, axis = 0)
     data_centered = data - data_means
-    cov_mat = np.cov(centered_spectra , rowvar = False)
+    cov_mat = np.cov(data_centered , rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(cov_mat)
     
     sorted_idx = np.argsort(eigen_values)[::-1]
