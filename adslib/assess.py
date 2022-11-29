@@ -14,7 +14,7 @@ def compute_pca(data):
     sorted_eigenvalues = eigen_values[sorted_idx]
     sorted_eigenvectors = eigen_vectors[:,sorted_idx]
     
-    return sorted_eigenvalues, sorted_eigenvectors, data_means, data_stds
+    return sorted_eigenvalues, sorted_eigenvectors, data_means, data_std
 
 def invert_pca(data, eigenvectors, means):
     return np.dot(eigenvectors.transpose(), np.dot(eigenvectors,(data - means).transpose())).transpose() + means
