@@ -3,3 +3,4 @@
 *.ipynb
 data_sample_with_cities.csv
 /cache
+*.csv

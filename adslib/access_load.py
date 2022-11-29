@@ -69,10 +69,10 @@ def get_price_coord_data_between_years_for_coordinate_area(conn, north, east, so
             INNER JOIN 
             (SELECT postcode, country, lattitude, longitude 
             FROM `postcode_data`
-            WHERE lattitude BETWEEN south AND north
-            AND longitude BETWEEN west AND east) pc
+            WHERE lattitude BETWEEN %(south)s AND %(north)s
+            AND longitude BETWEEN %(west)s AND %(east)s) pc
             ON pp.postcode = pc.postcode
             ORDER BY RAND()
             LIMIT %(limit)s'''
-    cur.execute(query, {'area': area + '%', 'start_date': str(start_year) + '/1/1', 'end_date': str(end_year) + '/12/31', 'limit': limit})
+    cur.execute(query, {'north': north, 'south': south, 'west': west, 'east': east, 'start_date': str(start_year) + '/1/1', 'end_date': str(end_year) + '/12/31', 'limit': limit})
     return cur.fetchall()

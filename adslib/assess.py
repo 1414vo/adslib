@@ -3,20 +3,21 @@ from shapely.geometry import Point, MultiPoint
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-def compute_cpa(data):
+def compute_pca(data):
     data_means = np.mean(data, axis = 0)
-    data_centered = data - data_means
-    cov_mat = np.cov(data_centered , rowvar = False)
+    data_std = np.std(data_means, axis = 0)
+    data_norm = (data - data_means)/data_std
+    cov_mat = np.cov(data_norm , rowvar = False)
     eigen_values , eigen_vectors = np.linalg.eigh(cov_mat)
     
     sorted_idx = np.argsort(eigen_values)[::-1]
     sorted_eigenvalues = eigen_values[sorted_idx]
     sorted_eigenvectors = eigen_vectors[:,sorted_idx]
     
-    return sorted_eigenvalues, sorted_eigenvectors, data_means
+    return sorted_eigenvalues, sorted_eigenvectors, data_means, data_stds
 
-def invert_cpa(data, eigenvectors, means):
-    return np.dot(eigenvectors, np.dot(eigenvectors.transpose(),(data - means).transpose())).transpose() + means
+def invert_pca(data, eigenvectors, means):
+    return np.dot(eigenvectors.transpose(), np.dot(eigenvectors,(data - means).transpose())).transpose() + means
 
 def get_features_around_coord(latitude, longitude, radius, tags, feature_set = []):
     if len(feature_set) == 0:
