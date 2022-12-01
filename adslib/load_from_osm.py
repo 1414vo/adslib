@@ -2,7 +2,7 @@ import osmnx as ox
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, MultiPoints
+from shapely.geometry import Point
 
 ''' Selects all POIs, given by tags, within a certain distance around a point.
     :param latitude: The latitude of the center point
