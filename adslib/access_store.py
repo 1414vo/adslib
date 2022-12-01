@@ -1,8 +1,7 @@
 import pymysql
 import pandas as pd
 
-def create_connection(user, password, host, database, port=3306):
-    """ Create a database connection to the MariaDB database
+""" Create a database connection to the MariaDB database
         specified by the host url and database name.
     :param user: username
     :param password: password
@@ -10,7 +9,9 @@ def create_connection(user, password, host, database, port=3306):
     :param database: database
     :param port: port number
     :return: Connection object or None
-    """
+"""
+def create_connection(user, password, host, database, port=3306):
+    
     conn = None
     try:
         conn = pymysql.connect(user=user,
@@ -24,6 +25,12 @@ def create_connection(user, password, host, database, port=3306):
         print(f"Error connecting to the MariaDB Server: {e}")
     return conn
 
+''' Stores the contents of a csv file in a table
+    :param conn: A pymysql connection to a database
+    :param table_name: The name of the table
+    :param file_location: The location of the file to be stored
+    :param reset: Whether to delete all previous entries from the table before insertion
+'''
 def save_local_data_in_table(conn, table_name, file_location, reset = True):
     if reset:
         cur = conn.cursor()
@@ -41,9 +48,11 @@ def save_local_data_in_table(conn, table_name, file_location, reset = True):
     cur = conn.cursor()
     cur.execute('SHOW COLUMNS FROM ' + table_name) 
     cols = cur.fetchall()
+    
     column_list = list(zip(*cols))[0][:-1]
     number_of_columns = len(column_list)
     template = '%s, ' * (number_of_columns - 1) + '%s'
+    
     query = 'INSERT INTO ' + table_name + ' ' + str(column_list).replace("'", '') + ' VALUES (' + template + ')'
     cur.executemany(query, list_of_rows)
     print("Inserted %s lines in %s"% (len(list_of_rows), table_name))
