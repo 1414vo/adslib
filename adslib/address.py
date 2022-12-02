@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, KFold
     :return: Mean-Squared error of predictions vs target
 '''
 def mse(predictions, target):
-    return (predictions - target)**2 / len(predictions)
+    return sum((predictions - target)**2 / len(predictions))
     
 ''' Train and validate the model through k-fold cross-validation.
     :param features: The features of the dataset

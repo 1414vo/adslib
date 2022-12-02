@@ -21,17 +21,6 @@ def compute_pca(data):
     return sorted_eigenvalues, sorted_eigenvectors, data_means, data_std
 
 
-''' Projects data after decomposition
-    :param data: Numpy array, containing our data, with columns as the dimensions.
-    :param eigenvectors: The eigenvectors we are projecting to.
-    :return: The data, projected onto the eigenvector representation.
-'''
-def invert_pca(data, eigenvectors):
-    means = np.mean(data, axis = 0)
-    std = np.std(data, axis = 0)
-    return np.dot(eigenvectors.transpose(), np.dot(eigenvectors,((data - means)/std).transpose())).transpose()*std + means
-
-
 ''' Removes outliers, based on the interquartile range method along multiple features
     :param df: The DataFrame containing our data
     :param list_of_features: A list of features to consider removing outliers on
@@ -68,6 +57,6 @@ def do_one_hot_encoding(df, feature):
 '''
 def mean_imputer(df, list_of_features):
     for feature in list_of_features:
-        median = df[feature].median()
-        df[feature] = np.where(df[feature].isna(), median, df[feature])
+        mean = df[feature].mean()
+        df[feature] = np.where(df[feature].isna(), mean, df[feature])
     return df
