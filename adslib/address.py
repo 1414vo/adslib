@@ -44,7 +44,7 @@ def cross_validation_train(features, target, split_fractions, loss = mse,  numbe
     
     # Fit on test model
     test_model = sm.OLS(y_fit_val, X_fit_val)
-    test_fit = test_model.fit_regularized(alpha = alpha, L1_wt = 0)
+    test_fit = test_model.fit_regularized(alpha = alpha, L1_wt = L1_wt)
     
     # Report results
     results = {}

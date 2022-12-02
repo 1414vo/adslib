@@ -23,12 +23,13 @@ URL = "https://github.com/1414vo/adslib"
 EMAIL = "1414vo@gmail.com"
 AUTHOR = "Ivo Petrov"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.6.1"
+VERSION = "1.0.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     "pandas", "numpy", "jupyter", "geopandas",
-    "pyyaml", "osmnx", ""
+    "pyyaml", "osmnx", "shapely", "scikit-learn",
+    "statsmodels"
 ]
 
 # What packages are optional?
